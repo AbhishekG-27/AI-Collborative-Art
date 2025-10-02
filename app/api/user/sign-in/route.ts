@@ -4,7 +4,7 @@ import { PrismaClient } from "@/lib/generated/prisma";
 
 const prisma = new PrismaClient();
 
-export default async function POST(req: NextRequest) {
+export async function POST(req: NextRequest) {
   const { email, password } = await req.json();
   if (!email || !password) {
     return NextResponse.json(

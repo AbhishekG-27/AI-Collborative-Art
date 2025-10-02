@@ -129,8 +129,6 @@ const AuthForm = ({ type }: AuthFormtypes) => {
           }));
           throw new Error(errorData.message);
         }
-
-        router.push("/sign-in");
       } catch (error) {
         console.error("An unexpected error occurred:", error);
       } finally {

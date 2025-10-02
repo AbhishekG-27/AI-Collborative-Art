@@ -13,6 +13,92 @@ model User {
   email     String   @unique
   password  String
   name      String?
+  avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  // Rooms created by this user
+  createdRooms Room[] @relation("RoomCreator")
+
+  // Many-to-many: Users can join multiple rooms
+  roomMembers RoomMember[]
+
+  // Drawings created by this user
+  drawings Drawing[]
+
+  // User cursor positions in rooms
+  cursors UserCursor[]
+}
+
+model Room {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isPublic    Boolean  @default(true)
+  maxUsers    Int      @default(10)
+  creatorId   String
+  creator     User     @relation("RoomCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Many-to-many: Rooms can have multiple users
+  members  RoomMember[]
+  drawings Drawing[]
+  cursors  UserCursor[]
+
+  @@index([creatorId])
+}
+
+// Explicit many-to-many relation table for User-Room
+model RoomMember {
+  id       String   @id @default(uuid())
+  userId   String
+  roomId   String
+  role     String   @default("member") // member, moderator, admin
+  joinedAt DateTime @default(now())
+  lastSeen DateTime @default(now())
+  isActive Boolean  @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+  @@index([roomId])
+  @@index([userId])
+}
+
+model Drawing {
+  id        String   @id @default(uuid())
+  roomId    String
+  userId    String // Track who created this drawing
+  data      Json // Store line/shape data
+  type      String   @default("freehand") // freehand, shape, ai-asset
+  layer     Int      @default(0)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// Track real-time cursor positions for collaboration
+model UserCursor {
+  id        String   @id @default(uuid())
+  userId    String
+  roomId    String
+  x         Float
+  y         Float
+  color     String   @default("#ffffff")
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+  @@index([roomId])
 }
