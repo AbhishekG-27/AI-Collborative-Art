@@ -30,6 +30,15 @@ export const addUserToRoom = async (roomId: string, userId: string) => {
       };
     }
 
+    // check if the room is private or public and if private, ask for password
+    // if (!room.isPublic) {
+    //   return {
+    //     success: false,
+    //     message: "Room is private",
+    //     errorType: "ROOM_IS_PRIVATE",
+    //   };
+    // }
+
     // check if the user is already in a room
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -38,15 +47,6 @@ export const addUserToRoom = async (roomId: string, userId: string) => {
         currentRoom: { select: { id: true, name: true } },
       },
     });
-
-    // The room the user is trying to join is the same as the current room
-    if (user?.currentRoomId === roomId) {
-      return {
-        success: true,
-        message: "User already in the room",
-        updatedUser: user,
-      };
-    }
 
     if (user?.currentRoomId) {
       return {
