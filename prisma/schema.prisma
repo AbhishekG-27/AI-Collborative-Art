@@ -8,6 +8,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum DrawingType {
+  FREEHAND
+  ELLIPSE
+  AI_ASSET
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -17,17 +23,13 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Rooms created by this user
-  createdRooms Room[] @relation("RoomCreator")
+  // Only allow one current room per user
+  currentRoomId String?
+  currentRoom   Room?   @relation(fields: [currentRoomId], references: [id])
 
-  // Many-to-many: Users can join multiple rooms
-  roomMembers RoomMember[]
-
-  // Drawings created by this user
-  drawings Drawing[]
-
-  // User cursor positions in rooms
-  cursors UserCursor[]
+  createdRooms Room[]       @relation("RoomCreator")
+  drawings     Drawing[]
+  cursors      UserCursor[]
 }
 
 model Room {
@@ -41,42 +43,24 @@ model Room {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // Many-to-many: Rooms can have multiple users
-  members  RoomMember[]
+  // One-to-many, users can only join one room at a time
+  members  User[]
   drawings Drawing[]
   cursors  UserCursor[]
 
   @@index([creatorId])
 }
 
-// Explicit many-to-many relation table for User-Room
-model RoomMember {
-  id       String   @id @default(uuid())
-  userId   String
-  roomId   String
-  role     String   @default("member") // member, moderator, admin
-  joinedAt DateTime @default(now())
-  lastSeen DateTime @default(now())
-  isActive Boolean  @default(true)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, roomId])
-  @@index([roomId])
-  @@index([userId])
-}
-
 model Drawing {
-  id        String   @id @default(uuid())
+  id        String      @id @default(uuid())
   roomId    String
   userId    String // Track who created this drawing
   data      Json // Store line/shape data
-  type      String   @default("freehand") // freehand, shape, ai-asset
-  layer     Int      @default(0)
-  isVisible Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  type      DrawingType // freehand, shape, ai-asset
+  layer     Int         @default(0)
+  isVisible Boolean     @default(true)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

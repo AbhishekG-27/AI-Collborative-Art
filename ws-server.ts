@@ -2,6 +2,7 @@
 import next from "next";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
+import { CollaborationManager } from "./lib/CollaborationManager.ts";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -9,6 +10,8 @@ const port = 3000;
 
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
+
+const collaborationManager = new CollaborationManager();
 
 app.prepare().then(() => {
   const httpServer = createServer((req, res) => {
@@ -29,24 +32,20 @@ app.prepare().then(() => {
   io.on("connection", (socket) => {
     console.log("User connected:", socket.id);
 
-    // Join canvas room
-    socket.on("join-canvas", (canvasId) => {
-      socket.join(canvasId);
-      socket.to(canvasId).emit("user-joined", socket.id);
+    socket.on("joinRoom", async ({ roomId, userId }) => {
+      await socket.join(roomId);
+      collaborationManager.addUserToRoom(roomId, userId, socket.id);
     });
 
-    // Real-time drawing events
-    socket.on("drawing-data", (data) => {
-      socket.to(data.canvasId).emit("drawing-update", data);
-    });
-
-    // AI asset placement
-    socket.on("ai-asset-placed", (data) => {
-      socket.to(data.canvasId).emit("asset-update", data);
+    socket.on("draw", ({ roomId, userId, data }) => {
+      // Broadcast the drawing data to other users in the same room
+      console.log(data);
+      socket.to(roomId).emit("draw", { userId, data });
     });
 
     socket.on("disconnect", () => {
       console.log("User disconnected:", socket.id);
+      collaborationManager.removeUserFromRoom(socket.id);
     });
   });
 

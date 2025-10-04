@@ -23,13 +23,14 @@ declare module "next-auth/jwt" {
 }
 
 type LineData = {
-  tool: string;
+  type: "freehand";
   points: number[];
   stroke: string;
   strokeWidth: number;
 };
 
 type EllipseData = {
+  type: "ellipse";
   x: number;
   y: number;
   radiusX: number;

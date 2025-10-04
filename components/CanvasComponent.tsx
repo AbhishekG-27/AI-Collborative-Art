@@ -3,10 +3,19 @@
 import { LineData, EllipseData, Tools } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
 import { Stage, Ellipse, Layer } from "react-konva";
-import { Pen, Circle, Eraser, Undo, Trash2, ZoomIn } from "lucide-react";
+import { ZoomIn } from "lucide-react";
 import LinesLayer from "./LinesLayer";
+import Toolbar from "./Toolbar";
+import useSocket from "@/lib/socket-io-client";
+import { Socket } from "socket.io-client";
 
-const CanvasComponent = () => {
+const CanvasComponent = ({
+  roomId,
+  userId,
+}: {
+  roomId: string;
+  userId: string;
+}) => {
   const [lines, setLines] = useState<LineData[]>([]);
   const [ellipses, setEllipses] = useState<EllipseData[]>([]);
   const [tool, setTool] = useState<Tools>("pen");
@@ -17,6 +26,8 @@ const CanvasComponent = () => {
   const isDrawing = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
   const stageRef = useRef<any>(null);
+
+  const { socket, connected } = useSocket();
 
   // Handle window dimensions safely
   useEffect(() => {
@@ -32,8 +43,19 @@ const CanvasComponent = () => {
 
     // Update on resize
     window.addEventListener("resize", updateDimensions);
-    return () => window.removeEventListener("resize", updateDimensions);
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+    };
   }, []);
+
+  // Handle joining rooms when socket is ready
+  useEffect(() => {
+    if (!connected || !socket) {
+      return;
+    }
+    console.log("Joining room:", roomId);
+    socket.emit("joinRoom", { roomId, userId });
+  }, [roomId, userId, connected, socket]);
 
   const handleMouseDown = (e: any) => {
     isDrawing.current = true;
@@ -52,6 +74,7 @@ const CanvasComponent = () => {
       setEllipses([
         ...ellipses,
         {
+          type: "ellipse",
           x: adjustedPos.x,
           y: adjustedPos.y,
           radiusX: 0,
@@ -64,7 +87,7 @@ const CanvasComponent = () => {
       setLines([
         ...lines,
         {
-          tool,
+          type: "freehand",
           points: [adjustedPos.x, adjustedPos.y],
           stroke: tool === "pen" ? "#374151" : "#ffffff",
           strokeWidth: tool === "pen" ? 3 : 20,
@@ -118,6 +141,13 @@ const CanvasComponent = () => {
 
   const handleMouseUp = () => {
     isDrawing.current = false;
+    if (socket) {
+      const dataToSend =
+        tool === "ellipse"
+          ? { type: "ellipse", data: ellipses[ellipses.length - 1] }
+          : { type: "line", data: lines[lines.length - 1] };
+      socket.emit("draw", { roomId, userId, data: dataToSend });
+    }
   };
 
   const handleWheel = (e: any) => {
@@ -219,66 +249,14 @@ const CanvasComponent = () => {
         </Stage>
       </div>
 
-      {/* Floating Toolbar - Left Center */}
-      <div className="absolute top-1/2 left-6 transform -translate-y-1/2 z-10">
-        <div className="flex flex-col gap-2 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200">
-          <button
-            onClick={() => setTool("pen")}
-            title="Pen Tool"
-            className={`w-12 h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
-              tool === "pen"
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:shadow-sm"
-            }`}
-          >
-            <Pen size={20} />
-          </button>
-
-          <button
-            onClick={() => setTool("ellipse")}
-            title="Ellipse Tool"
-            className={`w-12 h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
-              tool === "ellipse"
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:shadow-sm"
-            }`}
-          >
-            <Circle size={20} />
-          </button>
-
-          <button
-            onClick={() => setTool("eraser")}
-            title="Eraser Tool"
-            className={`w-12 h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
-              tool === "eraser"
-                ? "bg-blue-600 text-white shadow-md scale-105"
-                : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:shadow-sm"
-            }`}
-          >
-            <Eraser size={20} />
-          </button>
-
-          <div className="h-px w-8 bg-gray-300 my-1" />
-
-          <button
-            onClick={handleUndo}
-            disabled={lines.length === 0 && ellipses.length === 0}
-            title="Undo Last Action"
-            className="w-12 h-12 rounded-xl font-medium bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-gray-300 flex items-center justify-center hover:shadow-sm"
-          >
-            <Undo size={20} />
-          </button>
-
-          <button
-            onClick={handleClear}
-            disabled={lines.length === 0 && ellipses.length === 0}
-            title="Clear Canvas"
-            className="w-12 h-12 rounded-xl font-medium bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center hover:shadow-md"
-          >
-            <Trash2 size={20} />
-          </button>
-        </div>
-      </div>
+      <Toolbar
+        tool={tool}
+        setTool={setTool}
+        handleUndo={handleUndo}
+        handleClear={handleClear}
+        linesLength={lines.length}
+        ellipsesLength={ellipses.length}
+      />
 
       {/* Zoom Control Slider - Bottom Right */}
       <div className="absolute bottom-6 right-6 z-10">

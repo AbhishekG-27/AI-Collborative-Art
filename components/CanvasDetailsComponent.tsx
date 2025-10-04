@@ -7,8 +7,6 @@ import {
   Users,
   Clock,
   Palette,
-  Share2,
-  Settings,
   Plus,
 } from "lucide-react";
 
