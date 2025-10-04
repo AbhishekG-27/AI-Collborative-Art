@@ -1,6 +1,6 @@
 export class CollaborationManager {
   private rooms: Map<string, Set<string>>; // roomId -> Set of userIds
-  private users: Map<string, string>; // socketId -> userId
+  private users: Map<string, string>; // userId -> socketId
   private userRooms: Map<string, string>; // userId -> roomId
 
   addUserToRoom(roomId: string, userId: string, socketId: string): void {
@@ -9,15 +9,13 @@ export class CollaborationManager {
     }
 
     this.rooms.get(roomId)?.add(userId);
-    this.users.set(socketId, userId);
+    this.users.set(userId, socketId);
     this.userRooms.set(userId, roomId); // Track which room the user is in
-
-    console.log("Added: ", this.rooms);
   }
 
   removeUserFromRoom(socketId: string): void {
-    const userId = this.users.get(socketId);
-    if (!userId) return;
+    const userId = this.getUserIdBySocketId(socketId);
+    if (!userId) return console.error("User not found for socketId:", socketId);
 
     const roomId = this.userRooms.get(userId);
     if (roomId) {
@@ -33,7 +31,15 @@ export class CollaborationManager {
     }
 
     this.users.delete(socketId);
-    console.log("Deleted: ", this.rooms);
+  }
+
+  getUserIdBySocketId(socketId: string): string | null {
+    for (const [userId, sId] of this.users.entries()) {
+      if (sId === socketId) {
+        return userId;
+      }
+    }
+    return null;
   }
 
   constructor() {

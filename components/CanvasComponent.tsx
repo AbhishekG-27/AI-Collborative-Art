@@ -7,7 +7,6 @@ import { ZoomIn } from "lucide-react";
 import LinesLayer from "./LinesLayer";
 import Toolbar from "./Toolbar";
 import useSocket from "@/lib/socket-io-client";
-import { Socket } from "socket.io-client";
 
 const CanvasComponent = ({
   roomId,
@@ -53,8 +52,26 @@ const CanvasComponent = ({
     if (!connected || !socket) {
       return;
     }
-    console.log("Joining room:", roomId);
     socket.emit("joinRoom", { roomId, userId });
+
+    // Listen for drawing events from other users
+    const handleRemoteDraw = ({ userId: remoteUserId, data }: any) => {
+      if (remoteUserId !== userId) {
+        console.log("Received drawing data:", data);
+        if (data.type === "line") {
+          setLines((prev) => [...prev, data.data]);
+        } else if (data.type === "ellipse") {
+          setEllipses((prev) => [...prev, data.data]);
+        }
+      }
+    };
+
+    socket.on("draw", handleRemoteDraw);
+
+    // Cleanup
+    return () => {
+      socket.off("draw", handleRemoteDraw);
+    };
   }, [roomId, userId, connected, socket]);
 
   const handleMouseDown = (e: any) => {

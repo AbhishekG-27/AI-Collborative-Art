@@ -3,6 +3,7 @@ import next from "next";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { CollaborationManager } from "./lib/CollaborationManager.ts";
+import { removeUserFromRoomById } from "./lib/client.ts";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -43,9 +44,20 @@ app.prepare().then(() => {
       socket.to(roomId).emit("draw", { userId, data });
     });
 
-    socket.on("disconnect", () => {
+    socket.on("disconnect", async () => {
       console.log("User disconnected:", socket.id);
       collaborationManager.removeUserFromRoom(socket.id);
+
+      // Also remove the user from the room in the database
+      const userId = collaborationManager.getUserIdBySocketId(socket.id);
+      if (userId) {
+        const updatedUser = await removeUserFromRoomById(userId);
+        if (updatedUser.success) {
+          console.log(`User ${userId} removed from room in DB`);
+        } else {
+          console.error(`Failed to remove user ${userId} from room in DB`);
+        }
+      }
     });
   });
 
