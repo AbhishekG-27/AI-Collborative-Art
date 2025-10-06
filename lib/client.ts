@@ -16,12 +16,25 @@ const getDrawingsByRoomId = async (roomId: string) => {
 };
 
 export const checkIfUserInRoom = async (userId: string, roomId: string) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { currentRoomId: true },
+  // heck if the room exists
+  const room = await prisma.room.findUnique({
+    where: { id: roomId },
   });
 
-  return user?.currentRoomId === roomId;
+  if (!room) {
+    return { success: false, message: "Room not found" };
+  }
+
+  // check if the user is in the room
+  const user = await prisma.user.findUnique({
+    where: { id: userId, AND: { currentRoomId: roomId } },
+  });
+
+  if (!user) {
+    return { success: false, message: "You have not joined this room" };
+  }
+
+  return { success: true, message: "User is in the room" };
 };
 
 export const addUserToRoom = async (roomId: string, userId: string) => {

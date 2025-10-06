@@ -1,12 +1,10 @@
 import { SpaceType } from "@/types";
-import Link from "next/link";
 import React from "react";
+import CustomButton from "./CustomButton";
 
 const SpacesCard = ({ space }: { space: SpaceType }) => {
   return (
-    <div
-      className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden border border-gray-200"
-    >
+    <div className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-200 overflow-hidden border border-gray-200">
       {/* Space Preview/Thumbnail */}
       <div className="h-32 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 relative overflow-hidden">
         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-colors" />
@@ -62,12 +60,7 @@ const SpacesCard = ({ space }: { space: SpaceType }) => {
         </div>
 
         {/* Action Button */}
-        <Link
-          href={`/canvas/${space.id}`}
-          className="block w-full bg-gray-900 text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition-colors text-sm font-medium text-center"
-        >
-          Open Space
-        </Link>
+        <CustomButton roomId={space.id}>Enter Space</CustomButton>
       </div>
     </div>
   );

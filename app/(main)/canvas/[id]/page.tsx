@@ -17,11 +17,13 @@ const Canvas = async ({ params }: { params: { id: string } }) => {
 
   // check if the user is part of the room in db
   const isUserInRoom = await checkIfUserInRoom(userId, roomId);
-  if (!isUserInRoom) {
+  if (!isUserInRoom.success) {
     return (
       <CanvasError
         heading="Access Denied"
-        subHeading="You are not a member of this room."
+        subHeading={
+          isUserInRoom.message || "You do not have access to this room."
+        }
       />
     );
   }

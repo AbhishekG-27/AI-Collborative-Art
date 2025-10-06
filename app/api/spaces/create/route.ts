@@ -38,9 +38,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Redirect to the new space
-    return NextResponse.redirect(
-      new URL(`/canvas/${newSpace.id}`, request.url)
-    );
+    return NextResponse.redirect(new URL("/canvas", request.url));
   } catch (error) {
     console.error("Error creating space:", error);
     return NextResponse.json(

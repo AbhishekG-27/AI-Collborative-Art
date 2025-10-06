@@ -1,11 +1,8 @@
 import React from "react";
-import { PrismaClient } from "@/lib/generated/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-
-const prisma = new PrismaClient();
 
 const CreateSpace = async () => {
   const session = await getServerSession(authOptions);
