@@ -1,7 +1,13 @@
-import { Link } from "lucide-react";
+import Link from "next/link";
 import React from "react";
 
-const CanvasError = ({ errorMessage }: { errorMessage: string }) => {
+const CanvasError = ({
+  heading,
+  subHeading,
+}: {
+  heading: string;
+  subHeading: string;
+}) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
       <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8 text-center">
@@ -20,10 +26,8 @@ const CanvasError = ({ errorMessage }: { errorMessage: string }) => {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          Already in a Room
-        </h2>
-        <p className="text-gray-600 mb-6">{errorMessage}</p>
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">{heading}</h2>
+        <p className="text-gray-600 mb-6">{subHeading}</p>
         <div className="space-y-3">
           <Link
             href="/canvas"

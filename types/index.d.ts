@@ -40,3 +40,17 @@ type EllipseData = {
 };
 
 type Tools = "pen" | "eraser" | "ellipse";
+
+type SpaceType = {
+  id: string;
+  name: string;
+  description: string | null;
+  isPublic: boolean;
+  maxUsers: number;
+  createdAt: Date;
+  updatedAt: Date;
+  _count: {
+    members: number;
+    drawings: number;
+  };
+};

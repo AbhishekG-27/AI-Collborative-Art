@@ -15,6 +15,15 @@ const getDrawingsByRoomId = async (roomId: string) => {
   return drawings;
 };
 
+export const checkIfUserInRoom = async (userId: string, roomId: string) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { currentRoomId: true },
+  });
+
+  return user?.currentRoomId === roomId;
+};
+
 export const addUserToRoom = async (roomId: string, userId: string) => {
   try {
     // Check if the room exists
