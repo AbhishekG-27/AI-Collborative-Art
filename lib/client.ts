@@ -1,5 +1,22 @@
 import { PrismaClient } from "./generated/prisma/index.js";
 
+type LineData = {
+  type: "FREEHAND";
+  points: number[];
+  stroke: string;
+  strokeWidth: number;
+};
+
+type EllipseData = {
+  type: "ELLIPSE";
+  x: number;
+  y: number;
+  radiusX: number;
+  radiusY: number;
+  stroke: string;
+  strokeWidth: number;
+};
+
 const prisma = new PrismaClient();
 
 const getDrawingsByRoomId = async (roomId: string) => {
@@ -13,6 +30,33 @@ const getDrawingsByRoomId = async (roomId: string) => {
   });
 
   return drawings;
+};
+
+export const uploadDrawingData = async (
+  data: LineData | EllipseData,
+  roomId: string,
+  userId: string
+) => {
+  console.log(data)
+  try {
+    const updatedRoom = await prisma.drawing.create({
+      data: {
+        type: data.type,
+        roomId: roomId,
+        userId: userId,
+        data: data,
+      },
+    });
+
+    if (!updatedRoom) {
+      return { success: false, message: "Failed to create drawings." };
+    }
+
+    return { success: true, message: "Successfully created drawings." };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: "Failed to create drawings." };
+  }
 };
 
 export const checkIfUserInRoom = async (userId: string, roomId: string) => {

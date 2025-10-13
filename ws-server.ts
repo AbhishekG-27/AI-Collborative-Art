@@ -3,7 +3,7 @@ import next from "next";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 import { CollaborationManager } from "./lib/CollaborationManager.ts";
-import { removeUserFromRoomById } from "./lib/client.ts";
+import { removeUserFromRoomById, uploadDrawingData } from "./lib/client.ts";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
@@ -38,9 +38,10 @@ app.prepare().then(() => {
       collaborationManager.addUserToRoom(roomId, userId, socket.id);
     });
 
-    socket.on("draw", ({ roomId, userId, data }) => {
+    socket.on("draw", async ({ roomId, userId, data }) => {
       // Broadcast the drawing data to other users in the same room
-      console.log(data);
+      // console.log(data);
+      await uploadDrawingData(data.data, roomId, userId); // upload the drawing data to db.
       socket.to(roomId).emit("draw", { userId, data });
     });
 

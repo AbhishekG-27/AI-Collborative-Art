@@ -91,7 +91,7 @@ const CanvasComponent = ({
       setEllipses([
         ...ellipses,
         {
-          type: "ellipse",
+          type: "ELLIPSE",
           x: adjustedPos.x,
           y: adjustedPos.y,
           radiusX: 0,
@@ -104,7 +104,7 @@ const CanvasComponent = ({
       setLines([
         ...lines,
         {
-          type: "freehand",
+          type: "FREEHAND",
           points: [adjustedPos.x, adjustedPos.y],
           stroke: tool === "pen" ? "#374151" : "#ffffff",
           strokeWidth: tool === "pen" ? 3 : 20,
@@ -161,8 +161,8 @@ const CanvasComponent = ({
     if (socket) {
       const dataToSend =
         tool === "ellipse"
-          ? { type: "ellipse", data: ellipses[ellipses.length - 1] }
-          : { type: "line", data: lines[lines.length - 1] };
+          ? { type: "ELLIPSE", data: ellipses[ellipses.length - 1] }
+          : { type: "FREEHAND", data: lines[lines.length - 1] };
       socket.emit("draw", { roomId, userId, data: dataToSend });
     }
   };
