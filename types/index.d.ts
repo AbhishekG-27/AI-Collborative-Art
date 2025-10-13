@@ -39,7 +39,7 @@ type EllipseData = {
   strokeWidth: number;
 };
 
-type Tools = "pen" | "eraser" | "ellipse";
+type Tools = "pen" | "eraser" | "ellipse" | "ai";
 
 type SpaceType = {
   id: string;
@@ -54,3 +54,21 @@ type SpaceType = {
     drawings: number;
   };
 };
+
+// Drawing Model Interface
+export interface Drawing {
+  id: string;
+  data: EllipseData | LineData; // This will be LineData | EllipseData | any other drawing data
+  type: DrawingType;
+  layer: number;
+  isVisible: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Drawing Type Enum (matching your Prisma schema)
+export enum DrawingType {
+  FREEHAND = "FREEHAND",
+  ELLIPSE = "ELLIPSE",
+  AI_ASSET = "AI_ASSET",
+}

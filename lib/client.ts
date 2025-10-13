@@ -19,13 +19,18 @@ type EllipseData = {
 
 const prisma = new PrismaClient();
 
-const getDrawingsByRoomId = async (roomId: string) => {
+export const getDrawingsByRoomId = async (roomId: string) => {
   const drawings = await prisma.room.findUnique({
     where: {
       id: roomId,
     },
     select: {
-      drawings: true,
+      drawings: {
+        omit: {
+          roomId: true,
+          userId: true,
+        },
+      },
     },
   });
 
@@ -37,7 +42,7 @@ export const uploadDrawingData = async (
   roomId: string,
   userId: string
 ) => {
-  console.log(data)
+  console.log(data);
   try {
     const updatedRoom = await prisma.drawing.create({
       data: {

@@ -1,5 +1,7 @@
 import { Tools } from "@/types";
-import { Eraser, Pen, Trash2, Undo, Circle } from "lucide-react";
+import { Eraser, Pen, Trash2, Undo, Circle, Sparkle } from "lucide-react";
+import AIImageModal from "./AIImageModal";
+import { useState } from "react";
 
 interface ToolbarProps {
   tool: string;
@@ -19,8 +21,21 @@ export default function Toolbar({
   ellipsesLength,
 }: ToolbarProps) {
   return (
-    <div className="absolute top-1/2 left-6 transform -translate-y-1/2 z-10">
+    <div className="absolute top-1/2 left-6 transform -translate-y-1/2 z-10 flex items-center">
       <div className="flex flex-col gap-2 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200">
+        <button
+          onClick={() => {
+            setTool("ai");
+          }}
+          title="Create using AI"
+          className={`w-12 h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
+            tool === "ai"
+              ? "bg-blue-600 text-white shadow-md scale-105"
+              : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:shadow-sm"
+          }`}
+        >
+          <Sparkle size={20} />
+        </button>
         <button
           onClick={() => setTool("pen")}
           title="Pen Tool"

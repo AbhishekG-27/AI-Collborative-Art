@@ -1,7 +1,7 @@
 import CanvasComponent from "@/components/CanvasComponent";
 import CanvasDetailsComponent from "@/components/CanvasDetailsComponent";
 import { authOptions } from "@/lib/auth";
-import { addUserToRoom, checkIfUserInRoom } from "@/lib/client";
+import { addUserToRoom, checkIfUserInRoom, getDrawingsByRoomId } from "@/lib/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -28,6 +28,9 @@ const Canvas = async ({ params }: { params: { id: string } }) => {
     );
   }
 
+  // fetch the drawings in the current room
+  const drawings = await getDrawingsByRoomId(roomId);
+
   // TO-DO: check if user is permitted to access the room, if not redirect to home
   // To-DO: Fetch room details from DB to show in CanvasDetailsComponent
   // To-DO: Handle invalid roomId (room not found) case
@@ -36,7 +39,7 @@ const Canvas = async ({ params }: { params: { id: string } }) => {
   return (
     <div>
       <CanvasDetailsComponent />
-      <CanvasComponent roomId={roomId} userId={userId} />
+      <CanvasComponent roomId={roomId} userId={userId} existingDrawings={drawings?.drawings} />
     </div>
   );
 };

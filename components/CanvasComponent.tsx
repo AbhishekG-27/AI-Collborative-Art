@@ -1,19 +1,22 @@
 "use client";
 
-import { LineData, EllipseData, Tools } from "@/types";
+import { LineData, EllipseData, Tools, Drawing } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
 import { Stage, Ellipse, Layer } from "react-konva";
 import { ZoomIn } from "lucide-react";
 import LinesLayer from "./LinesLayer";
 import Toolbar from "./Toolbar";
 import useSocket from "@/lib/socket-io-client";
+import AIImageModal from "./AIImageModal";
 
 const CanvasComponent = ({
   roomId,
   userId,
+  existingDrawings,
 }: {
   roomId: string;
   userId: string;
+  existingDrawings: Drawing[] | null;
 }) => {
   const [lines, setLines] = useState<LineData[]>([]);
   const [ellipses, setEllipses] = useState<EllipseData[]>([]);
@@ -57,7 +60,6 @@ const CanvasComponent = ({
     // Listen for drawing events from other users
     const handleRemoteDraw = ({ userId: remoteUserId, data }: any) => {
       if (remoteUserId !== userId) {
-        console.log("Received drawing data:", data);
         if (data.type === "line") {
           setLines((prev) => [...prev, data.data]);
         } else if (data.type === "ellipse") {
@@ -67,6 +69,15 @@ const CanvasComponent = ({
     };
 
     socket.on("draw", handleRemoteDraw);
+
+    // draw the existingDrawings by setting them in state.
+    existingDrawings?.forEach((drawing) => {
+      if (drawing.type === "FREEHAND") {
+        setLines((prev) => [...prev, drawing.data as LineData]);
+      } else if (drawing.type === "ELLIPSE") {
+        setEllipses((prev) => [...prev, drawing.data as EllipseData]);
+      }
+    });
 
     // Cleanup
     return () => {
@@ -156,8 +167,7 @@ const CanvasComponent = ({
     }
   };
 
-  const handleMouseUp = () => {
-    isDrawing.current = false;
+  const sendDataToBackend = () => {
     if (socket) {
       const dataToSend =
         tool === "ellipse"
@@ -165,6 +175,11 @@ const CanvasComponent = ({
           : { type: "FREEHAND", data: lines[lines.length - 1] };
       socket.emit("draw", { roomId, userId, data: dataToSend });
     }
+  };
+
+  const handleMouseUp = () => {
+    isDrawing.current = false;
+    sendDataToBackend();
   };
 
   const handleWheel = (e: any) => {
@@ -208,6 +223,8 @@ const CanvasComponent = ({
       const newLines = lines.slice(0, -1);
       setLines(newLines);
     }
+    // TODO: update the current drawing, do not insert a new one.
+    // sendDataToBackend()
   };
 
   // Don't render until dimensions are set
@@ -273,6 +290,14 @@ const CanvasComponent = ({
         handleClear={handleClear}
         linesLength={lines.length}
         ellipsesLength={ellipses.length}
+      />
+
+      <AIImageModal
+        onClose={() => {
+          setTool("pen");
+        }}
+        isOpen={tool === "ai"}
+        onImageGenerated={() => {}}
       />
 
       {/* Zoom Control Slider - Bottom Right */}
