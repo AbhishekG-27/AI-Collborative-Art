@@ -2,7 +2,13 @@ import { LineData } from "@/types";
 import React from "react";
 import { Layer, Line } from "react-konva";
 
-const LinesLayer = ({ lines }: { lines: LineData[] }) => {
+const LinesLayer = ({
+  lines,
+  isDraggable,
+}: {
+  lines: LineData[];
+  isDraggable: boolean;
+}) => {
   return (
     <Layer>
       {lines.map((line, i) => (
@@ -17,7 +23,7 @@ const LinesLayer = ({ lines }: { lines: LineData[] }) => {
           globalCompositeOperation={
             line.type === "ERASER" ? "destination-out" : "source-over"
           }
-          draggable
+          draggable={isDraggable}
         />
       ))}
     </Layer>

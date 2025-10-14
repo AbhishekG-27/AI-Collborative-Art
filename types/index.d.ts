@@ -39,7 +39,7 @@ type EllipseData = {
   strokeWidth: number;
 };
 
-type Tools = "pen" | "eraser" | "ellipse" | "ai";
+type Tools = "pen" | "eraser" | "ellipse" | "ai" | "select";
 
 type SpaceType = {
   id: string;

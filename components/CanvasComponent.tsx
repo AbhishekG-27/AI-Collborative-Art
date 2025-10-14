@@ -296,7 +296,7 @@ const CanvasComponent = ({
           onWheel={handleWheel}
           className="cursor-crosshair"
         >
-          <LinesLayer lines={lines} />
+          <LinesLayer lines={lines} isDraggable={tool === "select"} />
           <Layer>
             {ellipses.map((ellipse, i) => (
               <Ellipse
@@ -308,12 +308,19 @@ const CanvasComponent = ({
                 stroke={ellipse.stroke}
                 strokeWidth={ellipse.strokeWidth}
                 fill="transparent"
-                draggable
+                draggable={tool === "select"}
+                onDragEnd={() => {
+                  setTool("pen");
+                }}
               />
             ))}
           </Layer>
           {generatedImage.map((image, index) => (
-            <AiImage key={index} imageBuffer={image} />
+            <AiImage
+              key={index}
+              imageBuffer={image}
+              isDraggable={tool === "select"}
+            />
           ))}
         </Stage>
       </div>
