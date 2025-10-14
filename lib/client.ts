@@ -1,7 +1,7 @@
 import { PrismaClient } from "./generated/prisma/index.js";
 
 type LineData = {
-  type: "FREEHAND";
+  type: "FREEHAND" | "ERASER";
   points: number[];
   stroke: string;
   strokeWidth: number;
@@ -42,7 +42,7 @@ export const uploadDrawingData = async (
   roomId: string,
   userId: string
 ) => {
-  console.log(data);
+  // console.log(data);
   try {
     const updatedRoom = await prisma.drawing.create({
       data: {

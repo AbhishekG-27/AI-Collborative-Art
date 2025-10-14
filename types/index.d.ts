@@ -23,7 +23,7 @@ declare module "next-auth/jwt" {
 }
 
 type LineData = {
-  type: "FREEHAND";
+  type: "FREEHAND" | "ERASER";
   points: number[];
   stroke: string;
   strokeWidth: number;
@@ -69,6 +69,7 @@ export interface Drawing {
 // Drawing Type Enum (matching your Prisma schema)
 export enum DrawingType {
   FREEHAND = "FREEHAND",
+  ERASER = "ERASER",
   ELLIPSE = "ELLIPSE",
   AI_ASSET = "AI_ASSET",
 }

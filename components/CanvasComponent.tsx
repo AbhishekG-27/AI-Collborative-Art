@@ -60,12 +60,19 @@ const CanvasComponent = ({
     socket.emit("joinRoom", { roomId, userId });
 
     // Listen for drawing events from other users
-    const handleRemoteDraw = ({ userId: remoteUserId, data }: any) => {
+    const handleRemoteDraw = ({
+      userId: remoteUserId,
+      data,
+    }: {
+      userId: string;
+      data: LineData | EllipseData;
+    }) => {
+      // console.log(data)
       if (remoteUserId !== userId) {
-        if (data.type === "line") {
-          setLines((prev) => [...prev, data.data]);
-        } else if (data.type === "ellipse") {
-          setEllipses((prev) => [...prev, data.data]);
+        if (data.type === "FREEHAND" || data.type === "ERASER") {
+          setLines((prev) => [...prev, data]);
+        } else if (data.type === "ELLIPSE") {
+          setEllipses((prev) => [...prev, data]);
         }
       }
     };
@@ -74,7 +81,7 @@ const CanvasComponent = ({
 
     // draw the existingDrawings by setting them in state.
     existingDrawings?.forEach((drawing) => {
-      if (drawing.type === "FREEHAND") {
+      if (drawing.type === "FREEHAND" || drawing.type === "ERASER") {
         setLines((prev) => [...prev, drawing.data as LineData]);
       } else if (drawing.type === "ELLIPSE") {
         setEllipses((prev) => [...prev, drawing.data as EllipseData]);
@@ -91,7 +98,10 @@ const CanvasComponent = ({
     if (!imageBuffer) {
       return;
     }
-    setGeneratedImage((prev) => [...prev, `data:image/png;base64,${imageBuffer}`]);
+    setGeneratedImage((prev) => [
+      ...prev,
+      `data:image/png;base64,${imageBuffer}`,
+    ]);
   };
 
   const handleMouseDown = (e: any) => {
@@ -130,6 +140,16 @@ const CanvasComponent = ({
           strokeWidth: tool === "pen" ? 3 : 20,
         },
       ]);
+    } else if (tool === "eraser") {
+      setLines([
+        ...lines,
+        {
+          type: "ERASER",
+          points: [adjustedPos.x, adjustedPos.y],
+          stroke: tool === "eraser" ? "#374151" : "#ffffff",
+          strokeWidth: tool === "eraser" ? 3 : 20,
+        },
+      ]);
     }
   };
 
@@ -160,7 +180,7 @@ const CanvasComponent = ({
 
       ellipses.splice(ellipses.length - 1, 1, lastEllipse);
       setEllipses(ellipses.concat());
-    } else if (tool === "pen") {
+    } else if (tool === "pen" || tool === "eraser") {
       // Get the last line
       const lastLine = lines[lines.length - 1];
 
@@ -178,10 +198,12 @@ const CanvasComponent = ({
 
   const sendDataToBackend = () => {
     if (socket) {
-      const dataToSend =
-        tool === "ellipse"
-          ? { type: "ELLIPSE", data: ellipses[ellipses.length - 1] }
-          : { type: "FREEHAND", data: lines[lines.length - 1] };
+      let dataToSend;
+      if (tool === "ellipse") {
+        dataToSend = { data: ellipses[ellipses.length - 1] };
+      } else if (tool === "eraser" || tool === "pen") {
+        dataToSend = { data: lines[lines.length - 1] };
+      }
       socket.emit("draw", { roomId, userId, data: dataToSend });
     }
   };

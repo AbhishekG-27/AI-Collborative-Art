@@ -15,7 +15,7 @@ const LinesLayer = ({ lines }: { lines: LineData[] }) => {
           lineCap="round"
           lineJoin="round"
           globalCompositeOperation={
-            line.tool === "eraser" ? "destination-out" : "source-over"
+            line.type === "ERASER" ? "destination-out" : "source-over"
           }
           draggable
         />

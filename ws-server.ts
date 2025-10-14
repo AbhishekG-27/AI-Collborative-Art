@@ -42,7 +42,7 @@ app.prepare().then(() => {
       // Broadcast the drawing data to other users in the same room
       // console.log(data);
       await uploadDrawingData(data.data, roomId, userId); // upload the drawing data to db.
-      socket.to(roomId).emit("draw", { userId, data });
+      socket.to(roomId).emit("draw", { userId, data: data.data });
     });
 
     socket.on("disconnect", async () => {

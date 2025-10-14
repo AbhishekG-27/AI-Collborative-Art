@@ -10,6 +10,7 @@ datasource db {
 
 enum DrawingType {
   FREEHAND
+  ERASER
   ELLIPSE
   AI_ASSET
 }

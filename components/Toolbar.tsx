@@ -1,7 +1,5 @@
 import { Tools } from "@/types";
 import { Eraser, Pen, Trash2, Undo, Circle, Sparkle } from "lucide-react";
-import AIImageModal from "./AIImageModal";
-import { useState } from "react";
 
 interface ToolbarProps {
   tool: string;
