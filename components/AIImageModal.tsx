@@ -6,7 +6,7 @@ import { X, Sparkles, Loader2 } from "lucide-react";
 interface AIImageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onImageGenerated: (imageUrl: string, prompt: string) => void;
+  onImageGenerated: (imageBuffer: string) => void;
 }
 
 export default function AIImageModal({
@@ -40,8 +40,8 @@ export default function AIImageModal({
         throw new Error("Failed to generate image");
       }
 
-      const data = await response.json();
-      onImageGenerated(data.imageUrl, data.prompt);
+      const { imageBuffer } = await response.json();
+      onImageGenerated(imageBuffer);
       setPrompt("");
       onClose();
     } catch (error) {

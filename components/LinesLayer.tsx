@@ -17,6 +17,7 @@ const LinesLayer = ({ lines }: { lines: LineData[] }) => {
           globalCompositeOperation={
             line.tool === "eraser" ? "destination-out" : "source-over"
           }
+          draggable
         />
       ))}
     </Layer>

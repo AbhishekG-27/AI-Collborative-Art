@@ -2,12 +2,13 @@
 
 import { LineData, EllipseData, Tools, Drawing } from "@/types";
 import React, { useEffect, useRef, useState } from "react";
-import { Stage, Ellipse, Layer } from "react-konva";
+import { Stage, Ellipse, Layer, Image } from "react-konva";
 import { ZoomIn } from "lucide-react";
 import LinesLayer from "./LinesLayer";
 import Toolbar from "./Toolbar";
 import useSocket from "@/lib/socket-io-client";
 import AIImageModal from "./AIImageModal";
+import AiImage from "./AiImage";
 
 const CanvasComponent = ({
   roomId,
@@ -24,6 +25,7 @@ const CanvasComponent = ({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const [zoom, setZoom] = useState(1); // Zoom level (0.1 to 3.0)
   const [stagePosition, setStagePosition] = useState({ x: 0, y: 0 }); // Pan position
+  const [generatedImage, setGeneratedImage] = useState<string[]>([]);
 
   const isDrawing = useRef(false);
   const startPos = useRef({ x: 0, y: 0 });
@@ -84,6 +86,13 @@ const CanvasComponent = ({
       socket.off("draw", handleRemoteDraw);
     };
   }, [roomId, userId, connected, socket]);
+
+  const onImageGenerated = async (imageBuffer: string) => {
+    if (!imageBuffer) {
+      return;
+    }
+    setGeneratedImage((prev) => [...prev, `data:image/png;base64,${imageBuffer}`]);
+  };
 
   const handleMouseDown = (e: any) => {
     isDrawing.current = true;
@@ -277,9 +286,13 @@ const CanvasComponent = ({
                 stroke={ellipse.stroke}
                 strokeWidth={ellipse.strokeWidth}
                 fill="transparent"
+                draggable
               />
             ))}
           </Layer>
+          {generatedImage.map((image, index) => (
+            <AiImage key={index} imageBuffer={image} />
+          ))}
         </Stage>
       </div>
 
@@ -297,7 +310,7 @@ const CanvasComponent = ({
           setTool("pen");
         }}
         isOpen={tool === "ai"}
-        onImageGenerated={() => {}}
+        onImageGenerated={onImageGenerated}
       />
 
       {/* Zoom Control Slider - Bottom Right */}

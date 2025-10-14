@@ -2,8 +2,15 @@ import { getServerSession } from "next-auth";
 import { PrismaClient } from "@/lib/generated/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
+import { GoogleGenAI } from "@google/genai";
+import { Client } from "minio";
 
+const model_name = process.env.GOOGLE_CLOUD_PROJECT_MODEL!;
 const prisma = new PrismaClient();
+const GoogleAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  vertexai: true,
+});
 
 export async function POST(req: NextRequest) {
   const session = getServerSession(authOptions);
@@ -19,27 +26,43 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const project_name = process.env.GOOGLE_CLOUD_PROJECT_NAME;
-  const auth_secret = process.env.GOOGLE_CLOUD_AUTH_SECRET;
-  const api_body = {
-    instances: [
-      {
-        prompt: prompt,
-      },
-    ],
-    parameters: {
-      sampleCount: 1,
-    },
-  };
+  // Fix 4: Add error handling for environment variables
+  if (!model_name) {
+    console.error("Missing required environment variables");
+    return NextResponse.json(
+      { message: "Server configuration error" },
+      { status: 500 }
+    );
+  }
 
-  const response = await fetch(
-    `https://aiplatform.googleapis.com/v1/projects/${project_name}/locations/global/publishers/google/models/imagen-4.0-generate-001:predict`,
-    {
-      headers: {
-        Authorization: `Bearer ${auth_secret}`,
-        "Content-Type": "application/json; charset=utf-8",
-      },
-      body: JSON.stringify(api_body),
-    }
+  const result = await GoogleAI.models.generateImages({
+    model: model_name,
+    prompt: prompt,
+    config: {
+      numberOfImages: 1,
+    },
+  });
+
+  const generatedImages = result.generatedImages;
+  if (!generatedImages || generatedImages.length <= 0) {
+    return NextResponse.json(
+      { message: "Failed to generate images" },
+      { status: 403 }
+    );
+  }
+
+  let imgBytes = generatedImages[0].image?.imageBytes;
+  if (!imgBytes) {
+    return NextResponse.json(
+      { message: "Failed to generate images" },
+      { status: 403 }
+    );
+  }
+
+  // const buffer = Buffer.from(imgBytes, "base64");
+
+  return NextResponse.json(
+    { message: "Image generated successfully", imageBuffer: imgBytes },
+    { status: 200 }
   );
 }
