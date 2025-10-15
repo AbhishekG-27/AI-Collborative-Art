@@ -5,11 +5,11 @@ import { Layer, Line } from "react-konva";
 const LinesLayer = ({
   lines,
   isDraggable,
-  onDragEnd
+  onDragEnd,
 }: {
   lines: LineData[];
   isDraggable: boolean;
-  onDragEnd: () => void
+  onDragEnd: (line: LineData, index: number) => void;
 }) => {
   return (
     <Layer>
@@ -26,7 +26,19 @@ const LinesLayer = ({
             line.type === "ERASER" ? "destination-out" : "source-over"
           }
           draggable={isDraggable}
-          onDragEnd={onDragEnd}
+          onDragEnd={(e) => {
+            const { x, y } = e.target.position();
+            line.points = line.points.map((point, index) => {
+              if (index % 2 === 0) {
+                // X coordinate
+                return point + x;
+              } else {
+                // Y coordinate
+                return point + y;
+              }
+            });
+            onDragEnd(line, i);
+          }}
         />
       ))}
     </Layer>

@@ -342,7 +342,8 @@ const CanvasComponent = ({
           <LinesLayer
             lines={lines}
             isDraggable={tool === "grab"}
-            onDragEnd={() => {
+            onDragEnd={(line: LineData, index: number) => {
+              updateShapePossitionInBackend(line, index);
               setTool("pen");
             }}
           />
