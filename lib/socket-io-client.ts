@@ -9,7 +9,7 @@ const useSocket = () => {
     const socketInstance = io(
       process.env.NODE_ENV === "production"
         ? "https://your-production-domain.com"
-        : "http://localhost:3000"
+        : "http://localhost:8000"
     );
 
     setSocket(socketInstance);

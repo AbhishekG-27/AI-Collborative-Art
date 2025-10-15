@@ -9,6 +9,7 @@ import Toolbar from "./Toolbar";
 import useSocket from "@/lib/socket-io-client";
 import AIImageModal from "./AIImageModal";
 import AiImage from "./AiImage";
+import { v4 as uuid } from "uuid";
 
 const CanvasComponent = ({
   roomId,
@@ -77,7 +78,28 @@ const CanvasComponent = ({
       }
     };
 
+    const handleRemoteUpdate = ({
+      index,
+      data,
+    }: {
+      index: number;
+      data: LineData | EllipseData;
+    }) => {
+      if (data.type === "ELLIPSE") {
+        setEllipses((prev) => {
+          let updatedDrawing = prev.filter((item) => item.id != data.id);
+          return [...updatedDrawing, data];
+        });
+      } else {
+        setLines((prev) => {
+          let updatedDrawing = prev.filter((item) => item.id != data.id);
+          return [...updatedDrawing, data];
+        });
+      }
+    };
+
     socket.on("draw", handleRemoteDraw);
+    socket.on("update_drawing", handleRemoteUpdate); // handle drawing possition change
 
     // draw the existingDrawings by setting them in state.
     existingDrawings?.forEach((drawing) => {
@@ -121,6 +143,7 @@ const CanvasComponent = ({
       setEllipses([
         ...ellipses,
         {
+          id: uuid(),
           type: "ELLIPSE",
           x: adjustedPos.x,
           y: adjustedPos.y,
@@ -134,6 +157,7 @@ const CanvasComponent = ({
       setLines([
         ...lines,
         {
+          id: uuid(),
           type: "FREEHAND",
           points: [adjustedPos.x, adjustedPos.y],
           stroke: tool === "pen" ? "#374151" : "#ffffff",
@@ -144,6 +168,7 @@ const CanvasComponent = ({
       setLines([
         ...lines,
         {
+          id: uuid(),
           type: "ERASER",
           points: [adjustedPos.x, adjustedPos.y],
           stroke: tool === "eraser" ? "#374151" : "#ffffff",
@@ -204,7 +229,25 @@ const CanvasComponent = ({
       } else if (tool === "eraser" || tool === "pen") {
         dataToSend = { data: lines[lines.length - 1] };
       }
-      socket.emit("draw", { roomId, userId, data: dataToSend });
+      if (dataToSend) {
+        socket.emit("draw", { roomId, userId, data: dataToSend });
+      }
+    }
+  };
+
+  const updateShapePossitionInBackend = (
+    data: EllipseData | LineData,
+    index: number
+  ) => {
+    if (socket) {
+      let dataToSend;
+      if (tool === "grab") {
+        // this means the possition of a shape or image has changes
+        dataToSend = { roomId: roomId, data: data, index: index };
+      }
+      if (dataToSend) {
+        socket.emit("update_drawing", dataToSend);
+      }
     }
   };
 
@@ -294,9 +337,15 @@ const CanvasComponent = ({
           onTouchMove={handleMouseMove}
           onTouchEnd={handleMouseUp}
           onWheel={handleWheel}
-          className="cursor-crosshair"
+          className={`${tool === "grab" ? "cursor-grab" : "cursor-crosshair"}`}
         >
-          <LinesLayer lines={lines} isDraggable={tool === "select"} />
+          <LinesLayer
+            lines={lines}
+            isDraggable={tool === "grab"}
+            onDragEnd={() => {
+              setTool("pen");
+            }}
+          />
           <Layer>
             {ellipses.map((ellipse, i) => (
               <Ellipse
@@ -308,8 +357,11 @@ const CanvasComponent = ({
                 stroke={ellipse.stroke}
                 strokeWidth={ellipse.strokeWidth}
                 fill="transparent"
-                draggable={tool === "select"}
-                onDragEnd={() => {
+                draggable={tool === "grab"}
+                onDragEnd={(e) => {
+                  ellipse.x = e.target.x();
+                  ellipse.y = e.target.y();
+                  updateShapePossitionInBackend(ellipse, i);
                   setTool("pen");
                 }}
               />
@@ -319,7 +371,7 @@ const CanvasComponent = ({
             <AiImage
               key={index}
               imageBuffer={image}
-              isDraggable={tool === "select"}
+              isDraggable={tool === "grab"}
             />
           ))}
         </Stage>

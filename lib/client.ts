@@ -1,21 +1,5 @@
+import { EllipseData, LineData } from "../types/index.js";
 import { PrismaClient } from "./generated/prisma/index.js";
-
-type LineData = {
-  type: "FREEHAND" | "ERASER";
-  points: number[];
-  stroke: string;
-  strokeWidth: number;
-};
-
-type EllipseData = {
-  type: "ELLIPSE";
-  x: number;
-  y: number;
-  radiusX: number;
-  radiusY: number;
-  stroke: string;
-  strokeWidth: number;
-};
 
 const prisma = new PrismaClient();
 
@@ -49,7 +33,7 @@ export const uploadDrawingData = async (
         type: data.type,
         roomId: roomId,
         userId: userId,
-        data: data,
+        data: JSON.parse(JSON.stringify(data)),
       },
     });
 

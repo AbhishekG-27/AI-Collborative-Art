@@ -23,11 +23,11 @@ export default function Toolbar({
       <div className="flex flex-col gap-2 p-3 bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200">
         <button
           onClick={() => {
-            setTool("select");
+            setTool("grab");
           }}
-          title="Select"
+          title="Grab"
           className={`w-12 h-12 rounded-xl font-medium transition-all duration-200 flex items-center justify-center ${
-            tool === "select"
+            tool === "grab"
               ? "bg-blue-600 text-white shadow-md scale-105"
               : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 hover:shadow-sm"
           }`}

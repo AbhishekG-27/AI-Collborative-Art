@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "ts-node ws-server.ts",
+    "dev": "next dev",
     "build": "next build",
     "start": "NODE_ENV=production node ws-server.ts",
     "lint": "next lint"
@@ -27,6 +27,7 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "use-image": "^1.1.4",
+    "uuid": "^13.0.0",
     "zod": "^4.1.11"
   },
   "devDependencies": {

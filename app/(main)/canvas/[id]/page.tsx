@@ -1,7 +1,7 @@
 import CanvasComponent from "@/components/CanvasComponent";
 import CanvasDetailsComponent from "@/components/CanvasDetailsComponent";
 import { authOptions } from "@/lib/auth";
-import { addUserToRoom, checkIfUserInRoom, getDrawingsByRoomId } from "@/lib/client";
+import { checkIfUserInRoom, getDrawingsByRoomId } from "@/lib/client";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import React from "react";
@@ -39,7 +39,7 @@ const Canvas = async ({ params }: { params: { id: string } }) => {
   return (
     <div>
       <CanvasDetailsComponent />
-      <CanvasComponent roomId={roomId} userId={userId} existingDrawings={drawings?.drawings} />
+      <CanvasComponent roomId={roomId} userId={userId} existingDrawings={drawings?.drawings} /> // @ts-nocheck
     </div>
   );
 };

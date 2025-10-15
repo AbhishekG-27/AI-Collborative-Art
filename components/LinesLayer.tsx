@@ -5,9 +5,11 @@ import { Layer, Line } from "react-konva";
 const LinesLayer = ({
   lines,
   isDraggable,
+  onDragEnd
 }: {
   lines: LineData[];
   isDraggable: boolean;
+  onDragEnd: () => void
 }) => {
   return (
     <Layer>
@@ -24,6 +26,7 @@ const LinesLayer = ({
             line.type === "ERASER" ? "destination-out" : "source-over"
           }
           draggable={isDraggable}
+          onDragEnd={onDragEnd}
         />
       ))}
     </Layer>
